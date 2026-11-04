@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e24">
+<title>Sleep Tracker</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main id="app">
+
+  <!-- HOME -->
+  <section class="view active" id="view-home">
+    <header class="top">
+      <div><h1>Sleep Tracker</h1><p class="muted" id="todayLabel"></p></div>
+      <span class="moon">🌙</span>
+    </header>
+
+    <div class="card track" id="trackCard">
+      <p class="status" id="trackStatus">Ready when you are</p>
+      <div class="timer" id="timer">00:00:00</div>
+      <div class="btn-row">
+        <button class="btn primary" id="btnSleep">🌙 I'm Going to Sleep</button>
+        <button class="btn ghost" id="btnNap">☀️ Start a Nap</button>
+        <button class="btn wake" id="btnWake" hidden>⏰ I'm Awake</button>
+      </div>
+    </div>
+
+    <div class="card affirm">
+      <p class="affirm-tag" id="affirmTag">Today's affirmation</p>
+      <p class="affirm-text" id="affirmText"></p>
+    </div>
+
+    <div class="card goal">
+      <svg viewBox="0 0 120 120" class="ring">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a99bff"/><stop offset="1" stop-color="#5b6cff"/></linearGradient></defs>
+        <circle cx="60" cy="60" r="52" class="ring-bg"/>
+        <circle cx="60" cy="60" r="52" class="ring-fg" id="ringFg"/>
+      </svg>
+      <div class="goal-text">
+        <div class="big" id="goalBig">0h 00m</div>
+        <div class="muted" id="goalSub">of 8h goal today</div>
+        <div class="pct" id="goalPct">0%</div>
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="card stat"><span class="muted">Today</span><b id="sToday">–</b></div>
+      <div class="card stat"><span class="muted">Last night</span><b id="sLast">–</b></div>
+      <div class="card stat"><span class="muted">Naps today</span><b id="sNap">–</b></div>
+      <div class="card stat"><span class="muted">7-day average</span><b id="s7">–</b></div>
+      <div class="card stat full"><span class="muted">30-day average</span><b id="s30">–</b></div>
+    </div>
+
+    <div class="card">
+      <h2>This week</h2>
+      <div class="rows" id="weekStats"></div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="view" id="view-history">
+    <header class="top"><h1>History</h1><button class="btn small primary" id="btnAdd">+ Add</button></header>
+    <div id="historyList"></div>
+  </section>
+
+  <!-- ANALYTICS -->
+  <section class="view" id="view-analytics">
+    <header class="top"><h1>Analytics</h1></header>
+    <div class="grid2" id="anaStats"></div>
+    <div class="card"><h2>Last 7 days</h2><div class="chart"><canvas id="chWeek"></canvas></div></div>
+    <div class="card"><h2>30-day trend</h2><div class="chart"><canvas id="chMonth"></canvas></div></div>
+    <div class="card"><h2>Night vs naps (30 days)</h2><div class="chart small"><canvas id="chCompare"></canvas></div><div class="rows" id="napStats"></div></div>
+  </section>
+
+  <!-- CALENDAR -->
+  <section class="view" id="view-calendar">
+    <header class="top"><h1>Calendar</h1></header>
+    <div class="card">
+      <div class="cal-head"><button class="icon-btn" id="calPrev">‹</button><b id="calTitle"></b><button class="icon-btn" id="calNext">›</button></div>
+      <div class="cal-grid" id="calGrid"></div>
+      <div class="legend muted"><i class="l0"></i>none <i class="l1"></i>&lt;60% <i class="l2"></i>&lt;100% <i class="l3"></i>goal met</div>
+    </div>
+    <div class="card" id="calDetail"><p class="muted">Tap a day to see its sleep.</p></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section class="view" id="view-settings">
+    <header class="top"><h1>Settings</h1></header>
+    <div class="card">
+      <label class="field">Daily sleep goal (hours)
+        <input type="number" id="goalInput" min="4" max="12" step="0.5">
+      </label>
+    </div>
+    <div class="card">
+      <h2>Your data</h2>
+      <p class="muted">Everything is stored on this device only.</p>
+      <div class="btn-row">
+        <button class="btn ghost" id="btnExport">Export backup</button>
+        <button class="btn ghost" id="btnImport">Import backup</button>
+        <button class="btn danger" id="btnReset">Delete all data</button>
+      </div>
+      <input type="file" id="importFile" accept="application/json" hidden>
+    </div>
+  </section>
+</main>
+
+<nav id="nav">
+  <button data-view="home" class="active"><span>🏠</span>Home</button>
+  <button data-view="history"><span>📜</span>History</button>
+  <button data-view="analytics"><span>📊</span>Analytics</button>
+  <button data-view="calendar"><span>📅</span>Calendar</button>
+  <button data-view="settings"><span>⚙️</span>Settings</button>
+</nav>
+
+<!-- Add / edit modal -->
+<div class="modal" id="modal" hidden>
+  <div class="sheet">
+    <h2 id="modalTitle">Edit session</h2>
+    <label class="field">Type
+      <select id="fType"><option value="night">Night sleep</option><option value="nap">Nap</option></select>
+    </label>
+    <label class="field">Went to sleep <input type="datetime-local" id="fStart"></label>
+    <label class="field">Woke up <input type="datetime-local" id="fEnd"></label>
+    <p class="err" id="fErr"></p>
+    <div class="btn-row">
+      <button class="btn primary" id="btnSave">Save changes</button>
+      <button class="btn ghost" id="btnCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script src="chart.umd.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
